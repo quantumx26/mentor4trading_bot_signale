@@ -110,6 +110,20 @@ def format_result(result, instrument):
     return msg
 
 
+def format_update(signal):
+    arrow = "📈" if signal["direction"] == "LONG" else "📉"
+    msg  = f"🔄 *UPDATE – LIMIT ORDER {signal['instrument']}*\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += f"📍 *Neuer Entry:* `{signal['entry']}`\n"
+    msg += f"🛑 *SL:*           `{signal['sl']}`\n"
+    msg += f"🎯 *TP:*           `{signal['tp']}`\n"
+    msg += f"⏰ *Zeit:*        `{get_time()} Uhr`\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "⚠️ *Order angepasst – alter Entry ungültig!*\n"
+    msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+    return msg
+
+
 def send_message(chat_id, text):
     requests.post(f"{BASE_URL}/sendMessage", json={
         "chat_id":    chat_id,
@@ -169,6 +183,25 @@ def handle_update(update):
     if text:
         parts = text.lower().split()
 
+        # LO Update: update MNQ 19430 sl 19370 tp 19550
+        if parts[0] == "update" and len(parts) >= 5:
+            try:
+                instrument = parts[1].upper()
+                entry      = parts[2]
+                sl         = parts[parts.index("sl") + 1]
+                tp         = parts[parts.index("tp") + 1]
+                # Richtung aus pending holen falls vorhanden, sonst LONG als default
+                direction  = pending.get(user_id, {}).get("direction", "LONG")
+                signal     = {"instrument": instrument, "entry": entry, "sl": sl, "tp": tp, "direction": direction}
+                update_msg = format_update(signal)
+                if send_text_to_channel(update_msg):
+                    send_message(chat_id, "✅ LO Update gepostet!")
+                else:
+                    send_message(chat_id, "❌ Fehler beim Posten!")
+            except:
+                send_message(chat_id, "❌ Format falsch!\nBeispiel: `update MNQ 19430 sl 19370 tp 19550`")
+            return
+
         # Trade Ergebnis: win MNQ / loss MNQ
         if parts[0] in ("win", "loss") and len(parts) >= 2:
             instrument = parts[1].upper()
@@ -195,6 +228,7 @@ def handle_update(update):
                 "📊 *Signal Bot – Anleitung*\n\n"
                 "📍 *Direktes Signal:*\n`long MNQ 19450 sl 19380 tp 19550`\n\n"
                 "⏳ *Limit Order:*\n`lo long MNQ 19450 sl 19380 tp 19550`\n\n"
+                "🔄 *LO Update:*\n`update MNQ 19430 sl 19370 tp 19550`\n\n"
                 "✅ *Trade gewonnen:*\n`win MNQ`\n\n"
                 "❌ *Trade verloren:*\n`loss MNQ`\n\n"
                 "📸 *Mit Bild:*\n"
