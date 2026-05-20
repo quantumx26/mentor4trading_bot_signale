@@ -33,13 +33,21 @@ def get_time():
 
 def parse_signal(text):
     """
-    Parst z.B.: long MNQ 19450 sl 19380 tp 19550
+    Parst z.B.:
+      long MNQ 19450 sl 19380 tp 19550         → direktes Signal
+      lo long MNQ 19450 sl 19380 tp 19550      → Limit Order
     Gibt dict zurück oder None wenn ungültig
     """
     try:
         parts = text.lower().split()
+
+        # LO erkennen
+        is_limit = parts[0] == "lo"
+        if is_limit:
+            parts = parts[1:]  # "lo" entfernen
+
         direction = parts[0]  # long / short
-        instrument = parts[1].upper()  # MNQ, MES etc
+        instrument = parts[1].upper()
         entry = parts[2]
         sl = parts[parts.index("sl") + 1]
         tp = parts[parts.index("tp") + 1]
@@ -52,7 +60,8 @@ def parse_signal(text):
             "instrument": instrument,
             "entry": entry,
             "sl": sl,
-            "tp": tp
+            "tp": tp,
+            "is_limit": is_limit
         }
     except:
         return None
@@ -60,17 +69,34 @@ def parse_signal(text):
 
 def format_signal(signal):
     """Formatiert das Signal als Telegram-Nachricht"""
-    emoji = "🟢" if signal["direction"] == "LONG" else "🔴"
-    arrow = "📈" if signal["direction"] == "LONG" else "📉"
 
-    msg  = f"{emoji} *{signal['direction']} Signal – {signal['instrument']}*\n"
-    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += f"📍 *Entry:*   `{signal['entry']}`\n"
-    msg += f"🛑 *SL:*       `{signal['sl']}`\n"
-    msg += f"🎯 *TP:*       `{signal['tp']}`\n"
-    msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
-    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+    if signal["is_limit"]:
+        # Limit Order Format
+        emoji = "⏳"
+        arrow = "📈" if signal["direction"] == "LONG" else "📉"
+        msg  = f"{emoji} *LIMIT ORDER – {signal['direction']} {signal['instrument']}*\n"
+        msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+        msg += f"📍 *Entry:*   `{signal['entry']}`\n"
+        msg += f"🛑 *SL:*       `{signal['sl']}`\n"
+        msg += f"🎯 *TP:*       `{signal['tp']}`\n"
+        msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
+        msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+        msg += f"⚠️ *Order platziert – noch nicht aktiv!*\n"
+        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+    else:
+        # Direktes Signal Format
+        emoji = "🟢" if signal["direction"] == "LONG" else "🔴"
+        arrow = "📈" if signal["direction"] == "LONG" else "📉"
+        msg  = f"{emoji} *{signal['direction']} Signal – {signal['instrument']}*\n"
+        msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+        msg += f"📍 *Entry:*   `{signal['entry']}`\n"
+        msg += f"🛑 *SL:*       `{signal['sl']}`\n"
+        msg += f"🎯 *TP:*       `{signal['tp']}`\n"
+        msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
+        msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+        msg += f"✅ *Jetzt aktiv!*\n"
+        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+
     return msg
 
 
