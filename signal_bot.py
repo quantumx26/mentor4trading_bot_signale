@@ -7,6 +7,7 @@ Du schickst dem Bot privat Text + Bild → er postet formatiert in den Kanal
 import requests
 import os
 import time
+import json
 from datetime import datetime
 import pytz
 from dotenv import load_dotenv
@@ -18,6 +19,7 @@ BOT_TOKEN    = os.environ.get("BOT_TOKEN", "")
 CHANNEL_ID   = os.environ.get("CHANNEL_ID", "")
 YOUR_USER_ID = os.environ.get("YOUR_USER_ID", "")
 TIMEZONE     = "Europe/Berlin"
+STATS_FILE   = "/root/signal_bot/stats.json"
 # ─────────────────────────────────────────────
 
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
@@ -29,12 +31,71 @@ def get_time():
     return datetime.now(tz).strftime("%H:%M")
 
 
+def get_week():
+    tz = pytz.timezone(TIMEZONE)
+    return datetime.now(tz).strftime("%Y-W%V")
+
+
+def load_stats():
+    try:
+        with open(STATS_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return {"week": get_week(), "wins": 0, "losses": 0}
+
+
+def save_stats(stats):
+    with open(STATS_FILE, "w") as f:
+        json.dump(stats, f)
+
+
+def add_result(result):
+    stats = load_stats()
+    current_week = get_week()
+
+    # Neue Woche → Reset
+    if stats.get("week") != current_week:
+        stats = {"week": current_week, "wins": 0, "losses": 0}
+
+    if result == "win":
+        stats["wins"] += 1
+    else:
+        stats["losses"] += 1
+
+    save_stats(stats)
+    return stats
+
+
+def build_recap(stats):
+    wins   = stats.get("wins", 0)
+    losses = stats.get("losses", 0)
+    total  = wins + losses
+    winrate = round((wins / total) * 100) if total > 0 else 0
+
+    tz = pytz.timezone(TIMEZONE)
+    now = datetime.now(tz)
+    kw  = now.strftime("%V")
+
+    if winrate >= 70:
+        comment = "💪 Starke Woche – weiter so!"
+    elif winrate >= 50:
+        comment = "📊 Solide Woche – Prozess stimmt!"
+    else:
+        comment = "🔄 Schwierige Woche – Analyse & weiter!"
+
+    msg  = f"📊 *Weekly Recap – KW {kw}*\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += f"✅ *Wins:*      {wins}\n"
+    msg += f"❌ *Losses:*   {losses}\n"
+    msg += f"📉 *Trades:*   {total}\n"
+    msg += f"📈 *Win Rate:* {winrate}%\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += f"{comment}\n"
+    msg += "@mentor4trading\\_signals"
+    return msg
+
+
 def parse_signal(text):
-    """
-    Parst z.B.:
-      long MNQ 19450 sl 19380 tp 19550       → direktes Signal
-      lo long MNQ 19450 sl 19380 tp 19550    → Limit Order
-    """
     try:
         parts = text.lower().split()
         is_limit = parts[0] == "lo"
@@ -151,6 +212,17 @@ def send_text_to_channel(text):
     return r.ok
 
 
+def check_friday_recap():
+    """Prüft ob es Freitag 17:00 Uhr ist und postet ggf. den Recap"""
+    tz  = pytz.timezone(TIMEZONE)
+    now = datetime.now(tz)
+    if now.weekday() == 4 and now.hour == 17 and now.minute == 0:
+        stats = load_stats()
+        recap = build_recap(stats)
+        send_text_to_channel(recap)
+        print(f"[OK] Weekly Recap gepostet!")
+
+
 def handle_update(update):
     msg = update.get("message", {})
     if not msg:
@@ -190,7 +262,6 @@ def handle_update(update):
                 entry      = parts[2]
                 sl         = parts[parts.index("sl") + 1]
                 tp         = parts[parts.index("tp") + 1]
-                # Richtung aus pending holen falls vorhanden, sonst LONG als default
                 direction  = pending.get(user_id, {}).get("direction", "LONG")
                 signal     = {"instrument": instrument, "entry": entry, "sl": sl, "tp": tp, "direction": direction}
                 update_msg = format_update(signal)
@@ -206,10 +277,31 @@ def handle_update(update):
         if parts[0] in ("win", "loss") and len(parts) >= 2:
             instrument = parts[1].upper()
             result_msg = format_result(parts[0], instrument)
+            stats      = add_result(parts[0])
             if send_text_to_channel(result_msg):
-                send_message(chat_id, "✅ Trade Update gepostet!")
+                send_message(chat_id, f"✅ Trade Update gepostet!\n📊 Diese Woche: {stats['wins']} Wins / {stats['losses']} Losses")
             else:
                 send_message(chat_id, "❌ Fehler beim Posten!")
+            return
+
+        # /recap → manuell Recap abrufen
+        if text == "/recap":
+            stats = load_stats()
+            recap = build_recap(stats)
+            if send_text_to_channel(recap):
+                send_message(chat_id, "✅ Recap gepostet!")
+            else:
+                send_message(chat_id, "❌ Fehler beim Posten!")
+            return
+
+        # /stats → nur dir anzeigen
+        if text == "/stats":
+            stats   = load_stats()
+            wins    = stats.get("wins", 0)
+            losses  = stats.get("losses", 0)
+            total   = wins + losses
+            winrate = round((wins / total) * 100) if total > 0 else 0
+            send_message(chat_id, f"📊 *Diese Woche:*\n✅ Wins: {wins}\n❌ Losses: {losses}\n📈 Win Rate: {winrate}%")
             return
 
         # /skip → pending Signal ohne Bild posten
@@ -231,6 +323,8 @@ def handle_update(update):
                 "🔄 *LO Update:*\n`update MNQ 19430 sl 19370 tp 19550`\n\n"
                 "✅ *Trade gewonnen:*\n`win MNQ`\n\n"
                 "❌ *Trade verloren:*\n`loss MNQ`\n\n"
+                "📊 *Recap manuell posten:*\n`/recap`\n\n"
+                "🔢 *Stats nur für dich:*\n`/stats`\n\n"
                 "📸 *Mit Bild:*\n"
                 "1️⃣ Text schicken → 2️⃣ Chartbild schicken\n"
                 "Oder Bild + Caption direkt zusammen\n\n"
@@ -267,11 +361,20 @@ def main():
         print("[ERROR] BOT_TOKEN, CHANNEL_ID oder YOUR_USER_ID fehlt in .env!")
         return
 
-    offset = 0
+    offset        = 0
+    last_recap_min = -1
     print("[OK] Bot läuft – warte auf Nachrichten...")
 
     while True:
         try:
+            # Freitag Recap prüfen (nur einmal pro Minute)
+            tz  = pytz.timezone(TIMEZONE)
+            now = datetime.now(tz)
+            current_min = now.hour * 60 + now.minute
+            if current_min != last_recap_min:
+                last_recap_min = current_min
+                check_friday_recap()
+
             r = requests.get(f"{BASE_URL}/getUpdates", params={
                 "offset":  offset,
                 "timeout": 30
