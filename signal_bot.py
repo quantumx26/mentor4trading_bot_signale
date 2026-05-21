@@ -8,6 +8,7 @@ import requests
 import os
 import time
 import json
+import random
 from datetime import datetime
 import pytz
 from dotenv import load_dotenv
@@ -194,6 +195,62 @@ def format_announcement(text):
     return msg
 
 
+def format_be(instrument):
+    msg  = f"🔒 *BREAKEVEN – {instrument}*\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "SL auf Entry gezogen – kein Risiko mehr\\!\n"
+    msg += f"⏰ `{get_time()} Uhr`\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "🤖 Jarvis | @mentor4trading\\_signals"
+    return msg
+
+
+def format_partial(instrument, tp1):
+    msg  = f"💰 *PARTIAL TP – {instrument}*\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "Erste Position geschlossen\\!\n"
+    msg += f"🎯 *TP1 bei:* `{tp1}`\n"
+    msg += "Rest läuft weiter 📈\n"
+    msg += f"⏰ `{get_time()} Uhr`\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "🤖 Jarvis | @mentor4trading\\_signals"
+    return msg
+
+
+MORNING_MESSAGES = [
+    "Neuer Tag, neue Chance.\nBleibt beim Plan, managed euer Risiko\nund lasst die Setups zu euch kommen!",
+    "Die Märkte warten nicht – aber gute Trader schon.\nNur A+ Setups. Kein FOMO. Kein Stress.",
+    "Heute wird geliefert. Nicht gehofft, nicht geraten.\nNur Chart, Setup, Execute. 🎯",
+    "Disziplin schlägt Talent jeden Tag.\nHaltet euren Plan und der Rest kommt von selbst.",
+    "Kaffee an, Charts auf, Kopf klar. ☕\nMal sehen was der Markt heute serviert.",
+    "Verluste gehören dazu. Gewinne auch.\nWas zählt ist der Prozess – und der stimmt.",
+    "Kein Setup? Kein Trade. So einfach ist das.\nGeduld ist die profitabelste Fähigkeit im Trading.",
+    "Der Markt hat immer Recht.\nUnsere Aufgabe ist es, zuzuhören – nicht zu kämpfen.",
+    "Heute ist ein neuer Tag. Gestrige Trades sind Geschichte.\nFokus auf jetzt. 💪",
+    "Wer auf alles reagiert, verliert alles.\nWer auf das Richtige wartet, gewinnt langfristig.",
+    "SMC ist kein Geheimnis – es ist Geduld & Wiederholung.\nBleibt konsequent!",
+    "Risiko managen, Gewinne laufen lassen.\nKlingt einfach. Ist es auch – wenn man es verinnerlicht hat.",
+    "Nicht jeder Tag bringt ein Setup.\nAber jeder Tag ist eine Chance, besser zu werden. 📈",
+    "Die besten Trader handeln weniger, nicht mehr.\nQualität über Quantität – immer.",
+    "Markt offen heißt nicht Pflicht zu traden.\nWarte auf deinen Edge – dann strike. 🎯",
+    "Heute ist Gameday. Aber nur wenn der Markt mitspielt.\nSonst ist Zuschauen auch eine Position.",
+    "Stop Loss ist keine Niederlage – es ist Risikomanagement.\nJeder Profi nutzt ihn. Ihr auch? ✅",
+    "Jarvis checkt die Charts. Jarvis sieht Struktur.\nJetzt liegt es an euch. Let's go! 🤖",
+    "Kleines Risiko, großes Potenzial.\nSo spielt man das Spiel langfristig. 💰",
+    "Gut Ding will Weile haben – auch im Trading.\nKein Setup erzwingen. Der Markt kommt zu euch."
+]
+
+
+def build_morning_message():
+    text = random.choice(MORNING_MESSAGES)
+    msg  = "🌅 *Guten Morgen Trader\\!*\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += f"{text}\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "🤖 Jarvis | @mentor4trading\\_signals"
+    return msg
+
+
 def send_message(chat_id, text):
     requests.post(f"{BASE_URL}/sendMessage", json={
         "chat_id":    chat_id,
@@ -263,6 +320,25 @@ def handle_update(update):
 
     if text:
         parts = text.lower().split()
+
+        # BE: be MNQ
+        if parts[0] == "be" and len(parts) >= 2:
+            instrument = parts[1].upper()
+            if send_text_to_channel(format_be(instrument)):
+                send_message(chat_id, "✅ BE gepostet!")
+            else:
+                send_message(chat_id, "❌ Fehler beim Posten!")
+            return
+
+        # Partial TP: partial MNQ 19520
+        if parts[0] == "partial" and len(parts) >= 3:
+            instrument = parts[1].upper()
+            tp1        = parts[2]
+            if send_text_to_channel(format_partial(instrument, tp1)):
+                send_message(chat_id, "✅ Partial TP gepostet!")
+            else:
+                send_message(chat_id, "❌ Fehler beim Posten!")
+            return
 
         # Announcement: announce Dein Text hier
         if parts[0] == "announce" and len(parts) >= 2:
@@ -344,6 +420,8 @@ def handle_update(update):
                 "❌ *Trade verloren:*\n`loss MNQ`\n\n"
                 "📊 *Recap manuell posten:*\n`/recap`\n\n"
                 "🔢 *Stats nur für dich:*\n`/stats`\n\n"
+                "🔒 *Breakeven:*\n`be MNQ`\n\n"
+                "💰 *Partial TP:*\n`partial MNQ 19520`\n\n"
                 "📢 *Announcement:*\n`announce Dein Text hier`\n\n"
                 "1️⃣ Text schicken → 2️⃣ Chartbild schicken\n"
                 "Oder Bild + Caption direkt zusammen\n\n"
@@ -386,13 +464,17 @@ def main():
 
     while True:
         try:
-            # Freitag Recap prüfen (nur einmal pro Minute)
+            # Freitag Recap + Guten Morgen (nur einmal pro Minute)
             tz  = pytz.timezone(TIMEZONE)
             now = datetime.now(tz)
             current_min = now.hour * 60 + now.minute
             if current_min != last_recap_min:
                 last_recap_min = current_min
                 check_friday_recap()
+                # Guten Morgen täglich 06:30
+                if now.hour == 6 and now.minute == 30:
+                    send_text_to_channel(build_morning_message())
+                    print("[OK] Guten Morgen gepostet!")
 
             r = requests.get(f"{BASE_URL}/getUpdates", params={
                 "offset":  offset,
