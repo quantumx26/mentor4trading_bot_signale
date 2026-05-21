@@ -21,10 +21,102 @@ CHANNEL_ID   = os.environ.get("CHANNEL_ID", "")
 YOUR_USER_ID = os.environ.get("YOUR_USER_ID", "")
 TIMEZONE     = "Europe/Berlin"
 STATS_FILE   = "/root/signal_bot/stats.json"
+EVENTS_FILE  = "/root/signal_bot/events_today.json"
+FF_URL       = "https://nfs.faireconomy.media/ff_calendar_thisweek.xml"
+CURRENCIES   = ["USD", "EUR", "GBP", "JPY"]
 # ─────────────────────────────────────────────
 
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 pending  = {}
+alerted  = set()  # Verhindert doppelte Alerts
+
+
+def fetch_and_save_events():
+    """ForexFactory Events für heute holen und speichern"""
+    import xml.etree.ElementTree as ET
+    from datetime import timezone as tz_utc
+    try:
+        r = requests.get(FF_URL, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+        r.raise_for_status()
+        root = ET.fromstring(r.content)
+        tz_berlin = pytz.timezone(TIMEZONE)
+        today = datetime.now(tz_berlin).date()
+        events = []
+
+        for event in root.findall("event"):
+            try:
+                currency = event.findtext("country", "").strip().upper()
+                impact   = event.findtext("impact", "").strip()
+                title    = event.findtext("title", "").strip()
+                date_str = event.findtext("date", "").strip()
+                time_str = event.findtext("time", "").strip()
+
+                if currency not in CURRENCIES: continue
+                if impact not in ("High", "Medium"): continue
+                if not time_str or time_str.lower() in ("", "all day", "tentative"): continue
+
+                event_date = datetime.strptime(date_str, "%m-%d-%Y").date()
+                if event_date != today: continue
+
+                dt_utc = datetime.strptime(
+                    f"{date_str} {time_str}", "%m-%d-%Y %I:%M%p"
+                ).replace(tzinfo=tz_utc.utc)
+                dt_local = dt_utc.astimezone(tz_berlin)
+
+                events.append({
+                    "time":     dt_local.strftime("%H:%M"),
+                    "currency": currency,
+                    "impact":   impact,
+                    "title":    title,
+                    "hour":     dt_local.hour,
+                    "minute":   dt_local.minute
+                })
+            except:
+                continue
+
+        with open(EVENTS_FILE, "w") as f:
+            json.dump(events, f)
+        print(f"[OK] {len(events)} Events gespeichert.")
+    except Exception as e:
+        print(f"[ERROR] Events holen fehlgeschlagen: {e}")
+
+
+def check_news_alerts():
+    """Prüft ob in 5 Minuten ein High-Impact Event kommt"""
+    try:
+        with open(EVENTS_FILE, "r") as f:
+            events = json.load(f)
+    except:
+        return
+
+    tz_berlin = pytz.timezone(TIMEZONE)
+    now = datetime.now(tz_berlin)
+
+    for event in events:
+        event_hour   = event["hour"]
+        event_minute = event["minute"]
+        alert_key    = f"{event_hour}:{event_minute}:{event['title']}"
+
+        # Event-Zeit in Minuten
+        event_total  = event_hour * 60 + event_minute
+        now_total    = now.hour * 60 + now.minute
+        diff         = event_total - now_total
+
+        # 5 Minuten vorher und noch nicht gesendet
+        if diff == 5 and alert_key not in alerted:
+            alerted.add(alert_key)
+            emoji = "🔴" if event["impact"] == "High" else "🟡"
+            flag  = {"USD":"🇺🇸","EUR":"🇪🇺","GBP":"🇬🇧","JPY":"🇯🇵"}.get(event["currency"], "🌐")
+
+            msg  = f"⚠️ *NEWS ALERT – in 5 Minuten\\!*\n"
+            msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+            msg += f"{emoji} `{event['time']}` {flag} *{event['currency']}* – {event['title']}\n"
+            msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+            msg += "SL absichern oder Position schließen\\!\n"
+            msg += "🤖 Jarvis | @mentor4trading\\_signals"
+
+            send_text_to_channel(msg)
+            print(f"[OK] News Alert gesendet: {event['title']}")
 
 
 def get_time():
@@ -527,6 +619,11 @@ def main():
                 if now.hour == 6 and now.minute == 30:
                     send_text_to_channel(build_morning_message())
                     print("[OK] Guten Morgen gepostet!")
+                # Events täglich um 07:01 holen (nach Kalender Post)
+                if now.hour == 7 and now.minute == 1:
+                    fetch_and_save_events()
+                # News Alerts prüfen
+                check_news_alerts()
 
             r = requests.get(f"{BASE_URL}/getUpdates", params={
                 "offset":  offset,
