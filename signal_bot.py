@@ -185,6 +185,15 @@ def format_update(signal):
     return msg
 
 
+def format_announcement(text):
+    msg  = "📢 *ANNOUNCEMENT*\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += f"{text}\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "🤖 Jarvis | @mentor4trading\\_signals"
+    return msg
+
+
 def send_message(chat_id, text):
     requests.post(f"{BASE_URL}/sendMessage", json={
         "chat_id":    chat_id,
@@ -254,6 +263,16 @@ def handle_update(update):
 
     if text:
         parts = text.lower().split()
+
+        # Announcement: announce Dein Text hier
+        if parts[0] == "announce" and len(parts) >= 2:
+            announce_text = " ".join(text.split(" ")[1:])
+            formatted = format_announcement(announce_text)
+            if send_text_to_channel(formatted):
+                send_message(chat_id, "✅ Announcement gepostet!")
+            else:
+                send_message(chat_id, "❌ Fehler beim Posten!")
+            return
 
         # LO Update: update MNQ 19430 sl 19370 tp 19550
         if parts[0] == "update" and len(parts) >= 5:
@@ -325,7 +344,7 @@ def handle_update(update):
                 "❌ *Trade verloren:*\n`loss MNQ`\n\n"
                 "📊 *Recap manuell posten:*\n`/recap`\n\n"
                 "🔢 *Stats nur für dich:*\n`/stats`\n\n"
-                "📸 *Mit Bild:*\n"
+                "📢 *Announcement:*\n`announce Dein Text hier`\n\n"
                 "1️⃣ Text schicken → 2️⃣ Chartbild schicken\n"
                 "Oder Bild + Caption direkt zusammen\n\n"
                 "⏭ *Ohne Bild:* `/skip` nach dem Text"
