@@ -217,6 +217,52 @@ def format_partial(instrument, tp1):
     return msg
 
 
+WIN_MESSAGES = [
+    "🔥 Das ist der Prozess\\! Genau so läuft das.",
+    "💰 Geiler Trade\\! Analyse stimmt, Execution stimmt – weiter so\\!",
+    "🎯 Bullseye\\! Setup gelesen, Entry gesetzt, Profit gesichert.",
+    "📈 Das ist kein Glück – das ist Können\\! GG.",
+    "🏆 Wieder einen geholt\\! Der Markt zahlt uns heute.",
+    "⚡ Sauber abgeliefert\\! SMC funktioniert – immer wieder.",
+    "💪 Das war Lehrbuch\\! Entry, Management, Exit – perfekt.",
+    "🚀 Grüner Trade\\! So macht Trading Spaß.",
+    "🎉 Kassiert\\! Wer den Plan hält, wird belohnt.",
+    "✅ Wieder im Plus\\! Disziplin zahlt sich aus.",
+    "🤑 Full TP kassiert\\! Das Konto sagt Danke.",
+    "💥 Das saß\\! Setup war klar, Execution war sauber – GG.",
+    "🎯 Plan gemacht, Plan gehalten, Profit gemacht. Simpel.",
+    "📊 Jarvis bestätigt: Grüner Trade. Der Prozess funktioniert\\!",
+    "🔑 Das ist es\\! Kein Overtrading, kein FOMO – nur das Setup.",
+    "💎 Diamantenhände\\! TP gehalten und voll kassiert.",
+    "⚡ Boom\\! Der Markt hat heute geliefert – wir auch.",
+    "🌟 Textbuch Setup\\! CHoCH, BOS, Entry – Full TP. Perfekt.",
+    "🏅 Wieder einen im Sack\\! Weiter mit dem gleichen Prozess.",
+    "🔥 Das ist warum wir jeden Morgen aufstehen und traden\\!"
+]
+
+LOSS_MESSAGES = [
+    "💪 Loss gehört dazu\\! Kein Trader der Welt hat 100% Win Rate.",
+    "🔄 Nächstes Setup kommt\\! Der Markt gibt immer neue Chancen.",
+    "🧠 Jeder Loss ist eine Lektion – was können wir daraus lernen?",
+    "⚡ Abgehakt\\! SL ist kein Versagen, SL ist Risikomanagement.",
+    "📊 Ein Loss ändert nichts am Prozess\\! Weiter nach Plan.",
+    "💎 Die Besten verlieren auch\\! Was sie unterscheidet ist wie sie damit umgehen.",
+    "🎯 Setup war valid – der Markt hat anders entschieden. Das ist Trading.",
+    "🔑 SL respektiert, Konto geschützt\\! Das ist schon ein Gewinn.",
+    "💪 Kopf hoch\\! Ein Loss ist kein Problem – Revenge Trading wäre eines.",
+    "📈 Langfristig gewinnt der Prozess\\! Ein Trade ändert nichts.",
+    "🧘 Ruhe bewahren\\! Die nächste Chance kommt bestimmt.",
+    "⚠️ Kein Revenge Trading\\! Pause, Reset, nächstes Setup abwarten.",
+    "🎯 Jarvis sagt: Abgehakt und vorwärts\\! Der nächste Trade wartet.",
+    "💡 Manchmal nimmt der Markt – aber meistens gibt er zurück\\!",
+    "🔄 Reset\\! Neuer Trade, neuer Anfang, neuer Profit.",
+    "💪 Mark Douglas sagte: Ein Loss ist nur ein Trade in einer Serie\\!",
+    "📊 Win Rate stimmt trotzdem\\! Ein Loss ist Teil des Systems.",
+    "🛡️ SL getriggert – Konto gesichert\\! So bleibt man langfristig im Game.",
+    "🌅 Morgen ist ein neuer Tag\\! Heute abgehakt, morgen zurückschlagen.",
+    "⚡ Verluste sind Schulgebühren der Märkte\\! Wir zahlen und lernen."
+]
+
 MORNING_MESSAGES = [
     "Neuer Tag, neue Chance.\nBleibt beim Plan, managed euer Risiko\nund lasst die Setups zu euch kommen!",
     "Die Märkte warten nicht – aber gute Trader schon.\nNur A+ Setups. Kein FOMO. Kein Stress.",
@@ -374,6 +420,12 @@ def handle_update(update):
             result_msg = format_result(parts[0], instrument)
             stats      = add_result(parts[0])
             if send_text_to_channel(result_msg):
+                # Motivations-Post direkt danach
+                if parts[0] == "win":
+                    motivation = random.choice(WIN_MESSAGES)
+                else:
+                    motivation = random.choice(LOSS_MESSAGES)
+                send_text_to_channel(f"🤖 *Jarvis sagt:*\n{motivation}")
                 send_message(chat_id, f"✅ Trade Update gepostet!\n📊 Diese Woche: {stats['wins']} Wins / {stats['losses']} Losses")
             else:
                 send_message(chat_id, "❌ Fehler beim Posten!")
