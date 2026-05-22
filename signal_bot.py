@@ -287,6 +287,18 @@ def format_announcement(text):
     return msg
 
 
+def format_tp1(instrument, price):
+    msg  = f"💰 *TP1 HIT – {instrument}*\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += f"🎯 Erster TP kassiert bei: `{price}`\n"
+    msg += "🔒 SL auf Breakeven gezogen\\!\n"
+    msg += "Rest läuft weiter 📈\n"
+    msg += f"⏰ `{get_time()} Uhr`\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "🤖 Jarvis | @mentor4trading\\_signals"
+    return msg
+
+
 def format_cancel(instrument):
     msg  = f"🚫 *ORDER CANCELLED – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -311,7 +323,7 @@ def format_be(instrument):
 def format_partial(instrument, tp1):
     msg  = f"💰 *PARTIAL TP – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "Teilprofite nehmen!\\!\n"
+    msg += "Limit Order für Teilprofite setzen!\n"
     msg += f"🎯 *TP1 bei:* `{tp1}`\n"
     msg += "Rest läuft weiter 📈\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
@@ -470,6 +482,16 @@ def handle_update(update):
     if text:
         parts = text.lower().split()
 
+        # TP1 Hit + BE: tp1 MNQ 19520
+        if parts[0] == "tp1" and len(parts) >= 3:
+            instrument = parts[1].upper()
+            price      = parts[2]
+            if send_text_to_channel(format_tp1(instrument, price)):
+                send_message(chat_id, "✅ TP1 + BE gepostet!")
+            else:
+                send_message(chat_id, "❌ Fehler beim Posten!")
+            return
+
         # Cancel: cancel MNQ
         if parts[0] == "cancel" and len(parts) >= 2:
             instrument = parts[1].upper()
@@ -584,6 +606,7 @@ def handle_update(update):
                 "❌ *Trade verloren:*\n`loss MNQ`\n\n"
                 "📊 *Recap manuell posten:*\n`/recap`\n\n"
                 "🔢 *Stats nur für dich:*\n`/stats`\n\n"
+                "💰 *TP1 Hit + BE:*\n`tp1 MNQ 19520`\n\n"
                 "🚫 *Order Cancel:*\n`cancel MNQ`\n\n"
                 "🔒 *Breakeven:*\n`be MNQ`\n\n"
                 "💰 *Partial TP:*\n`partial MNQ 19520`\n\n"
