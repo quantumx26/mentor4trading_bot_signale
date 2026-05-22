@@ -311,7 +311,7 @@ def format_be(instrument):
 def format_partial(instrument, tp1):
     msg  = f"💰 *PARTIAL TP – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "Erste Position geschlossen\\!\n"
+    msg += "Teilprofite nehmen!\\!\n"
     msg += f"🎯 *TP1 bei:* `{tp1}`\n"
     msg += "Rest läuft weiter 📈\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
