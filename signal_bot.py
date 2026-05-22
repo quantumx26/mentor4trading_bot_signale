@@ -228,7 +228,7 @@ def format_signal(signal):
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
         msg += f"⚠️ *Order platziert – noch nicht aktiv!*\n"
-        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+        msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
     else:
         emoji = "🟢" if signal["direction"] == "LONG" else "🔴"
         msg  = f"{emoji} *{signal['direction']} Signal – {signal['instrument']}*\n"
@@ -239,7 +239,7 @@ def format_signal(signal):
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
         msg += f"✅ *Jetzt aktiv!*\n"
-        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+        msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
 
     return msg
 
@@ -274,7 +274,7 @@ def format_update(signal):
     msg += f"⏰ *Zeit:*        `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += "⚠️ *Order angepasst – alter Entry ungültig!*\n"
-    msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+    msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
     return msg
 
 
@@ -282,6 +282,17 @@ def format_announcement(text):
     msg  = "📢 *ANNOUNCEMENT*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += f"{text}\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "🤖 Jarvis | @mentor4trading\\_signals"
+    return msg
+
+
+def format_cancel(instrument):
+    msg  = f"🚫 *ORDER CANCELLED – {instrument}*\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "Limit Order wurde entfernt\\!\n"
+    msg += "Entry nicht getroffen – kein Trade\\.\n"
+    msg += f"⏰ `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += "🤖 Jarvis | @mentor4trading\\_signals"
     return msg
@@ -459,6 +470,15 @@ def handle_update(update):
     if text:
         parts = text.lower().split()
 
+        # Cancel: cancel MNQ
+        if parts[0] == "cancel" and len(parts) >= 2:
+            instrument = parts[1].upper()
+            if send_text_to_channel(format_cancel(instrument)):
+                send_message(chat_id, "✅ Cancel gepostet!")
+            else:
+                send_message(chat_id, "❌ Fehler beim Posten!")
+            return
+
         # BE: be MNQ
         if parts[0] == "be" and len(parts) >= 2:
             instrument = parts[1].upper()
@@ -564,6 +584,7 @@ def handle_update(update):
                 "❌ *Trade verloren:*\n`loss MNQ`\n\n"
                 "📊 *Recap manuell posten:*\n`/recap`\n\n"
                 "🔢 *Stats nur für dich:*\n`/stats`\n\n"
+                "🚫 *Order Cancel:*\n`cancel MNQ`\n\n"
                 "🔒 *Breakeven:*\n`be MNQ`\n\n"
                 "💰 *Partial TP:*\n`partial MNQ 19520`\n\n"
                 "📢 *Announcement:*\n`announce Dein Text hier`\n\n"
