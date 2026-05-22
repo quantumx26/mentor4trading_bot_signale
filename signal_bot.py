@@ -323,7 +323,7 @@ def format_be(instrument):
 def format_partial(instrument, tp1):
     msg  = f"💰 *PARTIAL TP – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "Limit Order für Teilprofite setzen!\n"
+    msg += "Limit Order für Teilprofit setzen!\n"
     msg += f"🎯 *TP1 bei:* `{tp1}`\n"
     msg += "Rest läuft weiter 📈\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
@@ -559,7 +559,7 @@ def handle_update(update):
                     motivation = random.choice(WIN_MESSAGES)
                 else:
                     motivation = random.choice(LOSS_MESSAGES)
-                send_text_to_channel(f"🤖 *Jarvis sagt:*\n{motivation}")
+                send_text_to_channel(f"{motivation}\n\n🤖 Jarvis | @mentor4trading\\_signals")
                 send_message(chat_id, f"✅ Trade Update gepostet!\n📊 Diese Woche: {stats['wins']} Wins / {stats['losses']} Losses")
             else:
                 send_message(chat_id, "❌ Fehler beim Posten!")
