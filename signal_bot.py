@@ -106,7 +106,7 @@ def check_news_alerts():
         if diff == 5 and alert_key not in alerted:
             alerted.add(alert_key)
             emoji = "🔴" if event["impact"] == "High" else "🟡"
-            flag  = {"USD":"🇺🇸","EUR":"🇪🇺","GBP":"🇬🇧","JPY":"🇯🇵"}.get(event["currency"], "🌐")
+            flag  = {"USD":"🇺🇸","EUR":"🇪🇺"}.get(event["currency"], "🌐")
 
             msg  = f"⚠️ *NEWS ALERT – in 5 Minuten\\!*\n"
             msg += "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -302,7 +302,7 @@ def format_tp1(instrument, price):
 def format_cancel(instrument):
     msg  = f"🚫 *ORDER CANCELLED – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "Limit Order wurde entfernt\\!\n"
+    msg += "Limit Order wurde entfernt!\n"
     msg += "Entry nicht getroffen – kein Trade\\.\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -323,7 +323,7 @@ def format_be(instrument):
 def format_partial(instrument, tp1):
     msg  = f"💰 *PARTIAL TP – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "Limit Order für Teilprofit setzen!\n"
+    msg += "Limitorder für Teilprofite setzen!\n"
     msg += f"🎯 *TP1 bei:* `{tp1}`\n"
     msg += "Rest läuft weiter 📈\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
@@ -659,8 +659,8 @@ def main():
             if current_min != last_recap_min:
                 last_recap_min = current_min
                 check_friday_recap()
-                # Guten Morgen täglich 06:30
-                if now.hour == 6 and now.minute == 30:
+                # Guten Morgen täglich Mo-Fr 06:30
+                if now.hour == 6 and now.minute == 30 and now.weekday() < 5:
                     send_text_to_channel(build_morning_message())
                     print("[OK] Guten Morgen gepostet!")
                 # Events täglich um 07:01 holen (nach Kalender Post)
