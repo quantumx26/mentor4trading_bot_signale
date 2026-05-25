@@ -671,8 +671,8 @@ def main():
 
             r = requests.get(f"{BASE_URL}/getUpdates", params={
                 "offset":  offset,
-                "timeout": 30
-            }, timeout=35)
+                "timeout": 5
+            }, timeout=10)
 
             updates = r.json().get("result", [])
             for update in updates:
