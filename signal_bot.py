@@ -313,7 +313,7 @@ def format_cancel(instrument):
 def format_be(instrument):
     msg  = f"🔒 *BREAKEVEN – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "SL auf Entry gezogen – kein Risiko mehr\\!\n"
+    msg += "SL auf Entry gezogen – kein Risiko mehr!\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += "🤖 Jarvis | @mentor4trading\\_signals"
@@ -404,7 +404,7 @@ MORNING_MESSAGES = [
 
 def build_morning_message():
     text = random.choice(MORNING_MESSAGES)
-    msg  = "🌅 *Guten Morgen Trader\\!*\n"
+    msg  = "🌅 *Guten Morgen Trader!*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += f"{text}\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
