@@ -283,7 +283,7 @@ def format_announcement(text):
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += f"{text}\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "🤖 Jarvis | @mentor4trading\\_signals"
+    msg += "| @mentor4trading\\_signals"
     return msg
 
 
