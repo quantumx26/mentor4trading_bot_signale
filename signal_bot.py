@@ -23,7 +23,7 @@ TIMEZONE     = "Europe/Berlin"
 STATS_FILE   = "/root/signal_bot/stats.json"
 EVENTS_FILE  = "/root/signal_bot/events_today.json"
 FF_URL       = "https://nfs.faireconomy.media/ff_calendar_thisweek.xml"
-CURRENCIES   = ["USD", "EUR", "GBP", "JPY"]
+CURRENCIES   = ["USD"]
 # ─────────────────────────────────────────────
 
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
