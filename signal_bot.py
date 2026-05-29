@@ -28,11 +28,10 @@ CURRENCIES   = ["USD"]
 
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 pending  = {}
-alerted  = set()  # Verhindert doppelte Alerts
+alerted  = set()
 
 
 def fetch_and_save_events():
-    """ForexFactory Events für heute holen und speichern"""
     import xml.etree.ElementTree as ET
     from datetime import timezone as tz_utc
     try:
@@ -82,7 +81,6 @@ def fetch_and_save_events():
 
 
 def check_news_alerts():
-    """Prüft ob in 5 Minuten ein High-Impact Event kommt"""
     try:
         with open(EVENTS_FILE, "r") as f:
             events = json.load(f)
@@ -96,19 +94,16 @@ def check_news_alerts():
         event_hour   = event["hour"]
         event_minute = event["minute"]
         alert_key    = f"{event_hour}:{event_minute}:{event['title']}"
-
-        # Event-Zeit in Minuten
         event_total  = event_hour * 60 + event_minute
         now_total    = now.hour * 60 + now.minute
         diff         = event_total - now_total
 
-        # 5 Minuten vorher und noch nicht gesendet
         if diff == 5 and alert_key not in alerted:
             alerted.add(alert_key)
             emoji = "🔴" if event["impact"] == "High" else "🟡"
             flag  = {"USD":"🇺🇸","EUR":"🇪🇺","GBP":"🇬🇧","JPY":"🇯🇵"}.get(event["currency"], "🌐")
 
-            msg  = f"⚠️ *NEWS ALERT – in 5 Minuten!*\n"
+            msg  = f"⚠️ *NEWS ALERT – in 5 Minuten\\!*\n"
             msg += "━━━━━━━━━━━━━━━━━━━━━\n"
             msg += f"{emoji} `{event['time']}` {flag} *{event['currency']}* – {event['title']}\n"
             msg += "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -146,7 +141,6 @@ def add_result(result):
     stats = load_stats()
     current_week = get_week()
 
-    # Neue Woche → Reset
     if stats.get("week") != current_week:
         stats = {"week": current_week, "wins": 0, "losses": 0, "breakevens": 0}
 
@@ -168,7 +162,7 @@ def build_recap(stats):
     total      = wins + losses + breakevens
     winrate    = round(((wins + breakevens) / total) * 100) if total > 0 else 0
 
-    tz = pytz.timezone(TIMEZONE)
+    tz  = pytz.timezone(TIMEZONE)
     now = datetime.now(tz)
     kw  = now.strftime("%V")
 
@@ -231,8 +225,8 @@ def format_signal(signal):
         msg += f"🎯 *TP:*       `{signal['tp']}`\n"
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-        msg += f"⚠️ *Order platziert – noch nicht aktiv!*\n"
-        msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
+        msg += f"⚠️ *Order platziert – noch nicht aktiv\\!*\n"
+        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
     else:
         emoji = "🟢" if signal["direction"] == "LONG" else "🔴"
         msg  = f"{emoji} *{signal['direction']} Signal – {signal['instrument']}*\n"
@@ -242,8 +236,8 @@ def format_signal(signal):
         msg += f"🎯 *TP:*       `{signal['tp']}`\n"
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-        msg += f"✅ *Jetzt aktiv!*\n"
-        msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
+        msg += f"✅ *Jetzt aktiv\\!*\n"
+        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
 
     return msg
 
@@ -252,10 +246,10 @@ def format_result(result, instrument):
     if result == "win":
         msg  = f"✅ *FULL TP – {instrument}*\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-        msg += f"🎯 Take Profit erreicht!\n"
+        msg += f"🎯 Take Profit erreicht\\!\n"
         msg += f"⏰ `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-        msg += "💰 *GG! Trade geschlossen!*\n"
+        msg += "💰 *GG\\! Trade geschlossen\\!*\n"
         msg += "@mentor4trading\\_signals"
     else:
         msg  = f"❌ *STOP LOSS – {instrument}*\n"
@@ -263,7 +257,7 @@ def format_result(result, instrument):
         msg += f"🛑 Stop Loss getroffen\n"
         msg += f"⏰ `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-        msg += "💪 *Loss gehört dazu – next setup kommt!*\n"
+        msg += "💪 *Loss gehört dazu – next setup kommt\\!*\n"
         msg += "@mentor4trading\\_signals"
     return msg
 
@@ -277,8 +271,8 @@ def format_update(signal):
     msg += f"🎯 *TP:*           `{signal['tp']}`\n"
     msg += f"⏰ *Zeit:*        `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "⚠️ *Order angepasst – alter Entry ungültig!*\n"
-    msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
+    msg += "⚠️ *Order angepasst – alter Entry ungültig\\!*\n"
+    msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
     return msg
 
 
@@ -324,10 +318,21 @@ def format_be(instrument):
     return msg
 
 
+def format_bestop(instrument):
+    msg  = f"🔒 *BE STOP – {instrument}*\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "Am Breakeven ausgestoppt! 1. TP haben wir mitgenommen!\n"
+    msg += f"⏰ `{get_time()} Uhr`\n"
+    msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+    msg += "➡️ Kein Verlust – weiter gehts\\!\n"
+    msg += "🤖 Jarvis | @mentor4trading\\_signals"
+    return msg
+
+
 def format_partial(instrument, tp1):
     msg  = f"💰 *PARTIAL TP – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "Limitorder für Teilprofite setzen!\n"
+    msg += "Limitorder für die Teilprofite setzen!\n"
     msg += f"🎯 *TP1 bei:* `{tp1}`\n"
     msg += "Rest läuft weiter 📈\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
@@ -412,7 +417,7 @@ def build_morning_message():
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += f"{text}\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "🤖 Jarvis | @mentor4trading\\_signals"
+    msg += "🤖 Jarvis| @mentor4trading\\_signals"
     return msg
 
 
@@ -444,7 +449,6 @@ def send_text_to_channel(text):
 
 
 def check_friday_recap():
-    """Prüft ob es Freitag 17:00 Uhr ist und postet ggf. den Recap"""
     tz  = pytz.timezone(TIMEZONE)
     now = datetime.now(tz)
     if now.weekday() == 4 and now.hour == 17 and now.minute == 0:
@@ -505,7 +509,7 @@ def handle_update(update):
                 send_message(chat_id, "❌ Fehler beim Posten!")
             return
 
-        # BE: be MNQ → nur posten, nicht zählen
+        # BE: be MNQ → nur posten, NICHT zählen
         if parts[0] == "be" and len(parts) >= 2:
             instrument = parts[1].upper()
             if send_text_to_channel(format_be(instrument)):
@@ -518,14 +522,7 @@ def handle_update(update):
         if parts[0] == "bestop" and len(parts) >= 2:
             instrument = parts[1].upper()
             stats = add_result("be")
-            msg  = f"🔒 *BE STOP – {instrument}*\n"
-            msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-            msg += "Am Breakeven ausgestoppt\\!\n"
-            msg += f"⏰ `{get_time()} Uhr`\n"
-            msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-            msg += "➡️ Kein Verlust – weiter gehts\\!\n"
-            msg += "🤖 Jarvis | @mentor4trading\\_signals"
-            if send_text_to_channel(msg):
+            if send_text_to_channel(format_bestop(instrument)):
                 send_message(chat_id, f"✅ BE Stop gepostet!\n📊 Diese Woche: {stats['wins']} Wins / {stats.get('breakevens',0)} BE / {stats['losses']} Losses")
             else:
                 send_message(chat_id, "❌ Fehler beim Posten!")
@@ -575,13 +572,12 @@ def handle_update(update):
             result_msg = format_result(parts[0], instrument)
             stats      = add_result(parts[0])
             if send_text_to_channel(result_msg):
-                # Motivations-Post direkt danach
                 if parts[0] == "win":
                     motivation = random.choice(WIN_MESSAGES)
                 else:
                     motivation = random.choice(LOSS_MESSAGES)
                 send_text_to_channel(f"{motivation}\n\n🤖 Jarvis | @mentor4trading\\_signals")
-                send_message(chat_id, f"✅ Trade Update gepostet!\n📊 Diese Woche: {stats['wins']} Wins / {stats['losses']} Losses")
+                send_message(chat_id, f"✅ Trade Update gepostet!\n📊 Diese Woche: {stats['wins']} Wins / {stats.get('breakevens',0)} BE / {stats['losses']} Losses")
             else:
                 send_message(chat_id, "❌ Fehler beim Posten!")
             return
@@ -598,12 +594,13 @@ def handle_update(update):
 
         # /stats → nur dir anzeigen
         if text == "/stats":
-            stats   = load_stats()
-            wins    = stats.get("wins", 0)
-            losses  = stats.get("losses", 0)
-            total   = wins + losses
-            winrate = round((wins / total) * 100) if total > 0 else 0
-            send_message(chat_id, f"📊 *Diese Woche:*\n✅ Wins: {wins}\n❌ Losses: {losses}\n📈 Win Rate: {winrate}%")
+            stats      = load_stats()
+            wins       = stats.get("wins", 0)
+            losses     = stats.get("losses", 0)
+            breakevens = stats.get("breakevens", 0)
+            total      = wins + losses + breakevens
+            winrate    = round(((wins + breakevens) / total) * 100) if total > 0 else 0
+            send_message(chat_id, f"📊 *Diese Woche:*\n✅ Wins: {wins}\n🔒 BE: {breakevens}\n❌ Losses: {losses}\n📈 Win Rate: {winrate}%")
             return
 
         # /skip → pending Signal ohne Bild posten
@@ -625,15 +622,17 @@ def handle_update(update):
                 "🔄 *LO Update:*\n`update MNQ 19430 sl 19370 tp 19550`\n\n"
                 "✅ *Trade gewonnen:*\n`win MNQ`\n\n"
                 "❌ *Trade verloren:*\n`loss MNQ`\n\n"
+                "🔒 *Breakeven setzen:*\n`be MNQ`\n\n"
+                "🔒 *BE Stop \\(zählt als BE\\):*\n`bestop MNQ`\n\n"
+                "💰 *TP1 Hit \\+ BE:*\n`tp1 MNQ 19520`\n\n"
+                "💰 *Partial TP:*\n`partial MNQ 19520`\n\n"
+                "🚫 *Order Cancel:*\n`cancel MNQ`\n\n"
+                "📢 *Announcement:*\n`announce Dein Text hier`\n\n"
                 "📊 *Recap manuell posten:*\n`/recap`\n\n"
                 "🔢 *Stats nur für dich:*\n`/stats`\n\n"
-                "💰 *TP1 Hit + BE:*\n`tp1 MNQ 19520`\n\n"
-                "🚫 *Order Cancel:*\n`cancel MNQ`\n\n"
-                "🔒 *Breakeven:*\n`be MNQ`\n\n"
-                "💰 *Partial TP:*\n`partial MNQ 19520`\n\n"
-                "📢 *Announcement:*\n`announce Dein Text hier`\n\n"
+                "📸 *Mit Bild:*\n"
                 "1️⃣ Text schicken → 2️⃣ Chartbild schicken\n"
-                "Oder Bild + Caption direkt zusammen\n\n"
+                "Oder Bild \\+ Caption direkt zusammen\n\n"
                 "⏭ *Ohne Bild:* `/skip` nach dem Text"
             )
             send_message(chat_id, help_text)
@@ -667,33 +666,29 @@ def main():
         print("[ERROR] BOT_TOKEN, CHANNEL_ID oder YOUR_USER_ID fehlt in .env!")
         return
 
-    offset        = 0
+    offset         = 0
     last_recap_min = -1
     print("[OK] Bot läuft – warte auf Nachrichten...")
 
     while True:
         try:
-            # Freitag Recap + Guten Morgen (nur einmal pro Minute)
             tz  = pytz.timezone(TIMEZONE)
             now = datetime.now(tz)
             current_min = now.hour * 60 + now.minute
             if current_min != last_recap_min:
                 last_recap_min = current_min
                 check_friday_recap()
-                # Guten Morgen täglich Mo-Fr 06:30
                 if now.hour == 6 and now.minute == 30 and now.weekday() < 5:
                     send_text_to_channel(build_morning_message())
                     print("[OK] Guten Morgen gepostet!")
-                # Events täglich um 07:01 holen (nach Kalender Post)
                 if now.hour == 7 and now.minute == 1:
                     fetch_and_save_events()
-                # News Alerts prüfen
                 check_news_alerts()
 
             r = requests.get(f"{BASE_URL}/getUpdates", params={
                 "offset":  offset,
-                "timeout": 30
-            }, timeout=35)
+                "timeout": 5
+            }, timeout=10)
 
             updates = r.json().get("result", [])
             for update in updates:
