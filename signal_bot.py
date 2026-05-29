@@ -106,9 +106,9 @@ def check_news_alerts():
         if diff == 5 and alert_key not in alerted:
             alerted.add(alert_key)
             emoji = "🔴" if event["impact"] == "High" else "🟡"
-            flag  = {"USD":"🇺🇸","EUR":"🇪🇺"}.get(event["currency"], "🌐")
+            flag  = {"USD":"🇺🇸","EUR":"🇪🇺","GBP":"🇬🇧","JPY":"🇯🇵"}.get(event["currency"], "🌐")
 
-            msg  = f"⚠️ *NEWS ALERT – in 5 Minuten\\!*\n"
+            msg  = f"⚠️ *NEWS ALERT – in 5 Minuten!*\n"
             msg += "━━━━━━━━━━━━━━━━━━━━━\n"
             msg += f"{emoji} `{event['time']}` {flag} *{event['currency']}* – {event['title']}\n"
             msg += "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -134,7 +134,7 @@ def load_stats():
         with open(STATS_FILE, "r") as f:
             return json.load(f)
     except:
-        return {"week": get_week(), "wins": 0, "losses": 0}
+        return {"week": get_week(), "wins": 0, "losses": 0, "breakevens": 0}
 
 
 def save_stats(stats):
@@ -148,22 +148,25 @@ def add_result(result):
 
     # Neue Woche → Reset
     if stats.get("week") != current_week:
-        stats = {"week": current_week, "wins": 0, "losses": 0}
+        stats = {"week": current_week, "wins": 0, "losses": 0, "breakevens": 0}
 
     if result == "win":
         stats["wins"] += 1
-    else:
+    elif result == "loss":
         stats["losses"] += 1
+    elif result == "be":
+        stats["breakevens"] = stats.get("breakevens", 0) + 1
 
     save_stats(stats)
     return stats
 
 
 def build_recap(stats):
-    wins   = stats.get("wins", 0)
-    losses = stats.get("losses", 0)
-    total  = wins + losses
-    winrate = round((wins / total) * 100) if total > 0 else 0
+    wins       = stats.get("wins", 0)
+    losses     = stats.get("losses", 0)
+    breakevens = stats.get("breakevens", 0)
+    total      = wins + losses + breakevens
+    winrate    = round(((wins + breakevens) / total) * 100) if total > 0 else 0
 
     tz = pytz.timezone(TIMEZONE)
     now = datetime.now(tz)
@@ -178,10 +181,11 @@ def build_recap(stats):
 
     msg  = f"📊 *Weekly Recap – KW {kw}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += f"✅ *Wins:*      {wins}\n"
-    msg += f"❌ *Losses:*   {losses}\n"
-    msg += f"📉 *Trades:*   {total}\n"
-    msg += f"📈 *Win Rate:* {winrate}%\n"
+    msg += f"✅ *Wins:*        {wins}\n"
+    msg += f"🔒 *Breakeven:*  {breakevens}\n"
+    msg += f"❌ *Losses:*     {losses}\n"
+    msg += f"📉 *Trades:*     {total}\n"
+    msg += f"📈 *Win Rate:*   {winrate}% \\(Wins \\+ BE\\)\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += f"{comment}\n"
     msg += "@mentor4trading\\_signals"
@@ -228,7 +232,7 @@ def format_signal(signal):
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
         msg += f"⚠️ *Order platziert – noch nicht aktiv!*\n"
-        msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
+        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
     else:
         emoji = "🟢" if signal["direction"] == "LONG" else "🔴"
         msg  = f"{emoji} *{signal['direction']} Signal – {signal['instrument']}*\n"
@@ -239,7 +243,7 @@ def format_signal(signal):
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
         msg += f"✅ *Jetzt aktiv!*\n"
-        msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
+        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
 
     return msg
 
@@ -274,7 +278,7 @@ def format_update(signal):
     msg += f"⏰ *Zeit:*        `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += "⚠️ *Order angepasst – alter Entry ungültig!*\n"
-    msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
+    msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
     return msg
 
 
@@ -291,7 +295,7 @@ def format_tp1(instrument, price):
     msg  = f"💰 *TP1 HIT – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += f"🎯 Erster TP kassiert bei: `{price}`\n"
-    msg += "🔒 SL auf Breakeven gezogen\\!\n"
+    msg += "🔒 SL auf Breakeven wurde auf Breakeven gezogen!\n"
     msg += "Rest läuft weiter 📈\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -302,7 +306,7 @@ def format_tp1(instrument, price):
 def format_cancel(instrument):
     msg  = f"🚫 *ORDER CANCELLED – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "Limit Order wurde entfernt!\n"
+    msg += "Limit Order wurde entfernt\\!\n"
     msg += "Entry nicht getroffen – kein Trade\\.\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -313,7 +317,7 @@ def format_cancel(instrument):
 def format_be(instrument):
     msg  = f"🔒 *BREAKEVEN – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "SL auf Entry gezogen – kein Risiko mehr!\n"
+    msg += "SL auf Entry gezogen – kein Risiko mehr\\!\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += "🤖 Jarvis | @mentor4trading\\_signals"
@@ -323,7 +327,7 @@ def format_be(instrument):
 def format_partial(instrument, tp1):
     msg  = f"💰 *PARTIAL TP – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "Limitorder für Teilprofite setzen!\n"
+    msg += "Limit Order für Teilprofite setzen!\n"
     msg += f"🎯 *TP1 bei:* `{tp1}`\n"
     msg += "Rest läuft weiter 📈\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
@@ -504,6 +508,7 @@ def handle_update(update):
         # BE: be MNQ
         if parts[0] == "be" and len(parts) >= 2:
             instrument = parts[1].upper()
+            add_result("be")
             if send_text_to_channel(format_be(instrument)):
                 send_message(chat_id, "✅ BE gepostet!")
             else:
@@ -671,8 +676,8 @@ def main():
 
             r = requests.get(f"{BASE_URL}/getUpdates", params={
                 "offset":  offset,
-                "timeout": 5
-            }, timeout=10)
+                "timeout": 30
+            }, timeout=35)
 
             updates = r.json().get("result", [])
             for update in updates:
