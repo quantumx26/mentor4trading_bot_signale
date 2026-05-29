@@ -232,7 +232,7 @@ def format_signal(signal):
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
         msg += f"⚠️ *Order platziert – noch nicht aktiv!*\n"
-        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+        msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
     else:
         emoji = "🟢" if signal["direction"] == "LONG" else "🔴"
         msg  = f"{emoji} *{signal['direction']} Signal – {signal['instrument']}*\n"
@@ -243,7 +243,7 @@ def format_signal(signal):
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
         msg += f"✅ *Jetzt aktiv!*\n"
-        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+        msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
 
     return msg
 
@@ -278,7 +278,7 @@ def format_update(signal):
     msg += f"⏰ *Zeit:*        `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += "⚠️ *Order angepasst – alter Entry ungültig!*\n"
-    msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+    msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
     return msg
 
 
@@ -295,7 +295,7 @@ def format_tp1(instrument, price):
     msg  = f"💰 *TP1 HIT – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += f"🎯 Erster TP kassiert bei: `{price}`\n"
-    msg += "🔒 SL auf Breakeven wurde auf Breakeven gezogen!\n"
+    msg += "🔒 SL auf Breakeven gezogen!\n"
     msg += "Rest läuft weiter 📈\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -327,7 +327,7 @@ def format_be(instrument):
 def format_partial(instrument, tp1):
     msg  = f"💰 *PARTIAL TP – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "Limit Order für Teilprofite setzen!\n"
+    msg += "Limitorder für Teilprofite setzen!\n"
     msg += f"🎯 *TP1 bei:* `{tp1}`\n"
     msg += "Rest läuft weiter 📈\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
@@ -505,12 +505,28 @@ def handle_update(update):
                 send_message(chat_id, "❌ Fehler beim Posten!")
             return
 
-        # BE: be MNQ
+        # BE: be MNQ → nur posten, nicht zählen
         if parts[0] == "be" and len(parts) >= 2:
             instrument = parts[1].upper()
-            add_result("be")
             if send_text_to_channel(format_be(instrument)):
                 send_message(chat_id, "✅ BE gepostet!")
+            else:
+                send_message(chat_id, "❌ Fehler beim Posten!")
+            return
+
+        # BE Stop: bestop MNQ → zählt als Breakeven
+        if parts[0] == "bestop" and len(parts) >= 2:
+            instrument = parts[1].upper()
+            stats = add_result("be")
+            msg  = f"🔒 *BE STOP – {instrument}*\n"
+            msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+            msg += "Am Breakeven ausgestoppt\\!\n"
+            msg += f"⏰ `{get_time()} Uhr`\n"
+            msg += "━━━━━━━━━━━━━━━━━━━━━\n"
+            msg += "➡️ Kein Verlust – weiter gehts\\!\n"
+            msg += "🤖 Jarvis | @mentor4trading\\_signals"
+            if send_text_to_channel(msg):
+                send_message(chat_id, f"✅ BE Stop gepostet!\n📊 Diese Woche: {stats['wins']} Wins / {stats.get('breakevens',0)} BE / {stats['losses']} Losses")
             else:
                 send_message(chat_id, "❌ Fehler beim Posten!")
             return
