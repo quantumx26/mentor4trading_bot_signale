@@ -226,7 +226,7 @@ def format_signal(signal):
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
         msg += f"⚠️ *Order platziert – noch nicht aktiv\\!*\n"
-        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+        msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
     else:
         emoji = "🟢" if signal["direction"] == "LONG" else "🔴"
         msg  = f"{emoji} *{signal['direction']} Signal – {signal['instrument']}*\n"
@@ -237,7 +237,7 @@ def format_signal(signal):
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
         msg += f"✅ *Jetzt aktiv\\!*\n"
-        msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+        msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
 
     return msg
 
@@ -272,7 +272,7 @@ def format_update(signal):
     msg += f"⏰ *Zeit:*        `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += "⚠️ *Order angepasst – alter Entry ungültig\\!*\n"
-    msg += f"{arrow} SMC/ICT Setup | @mentor4trading\\_signals"
+    msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
     return msg
 
 
