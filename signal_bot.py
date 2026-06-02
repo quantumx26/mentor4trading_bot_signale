@@ -107,7 +107,7 @@ def check_news_alerts():
             msg += "━━━━━━━━━━━━━━━━━━━━━\n"
             msg += f"{emoji} `{event['time']}` {flag} *{event['currency']}* – {event['title']}\n"
             msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-            msg += "SL absichern oder Position schließen\\!\n"
+            msg += "Ggf. SL absichern oder Position schließen!\n"
             msg += "🤖 Jarvis | @mentor4trading\\_signals"
 
             send_text_to_channel(msg)
@@ -225,7 +225,7 @@ def format_signal(signal):
         msg += f"🎯 *TP:*       `{signal['tp']}`\n"
         msg += f"⏰ *Zeit:*    `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-        msg += f"⚠️ *Order platziert – noch nicht aktiv\\!*\n"
+        msg += f"⚠️ *Order platziert – noch nicht aktiv!*\n"
         msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
     else:
         emoji = "🟢" if signal["direction"] == "LONG" else "🔴"
@@ -257,7 +257,7 @@ def format_result(result, instrument):
         msg += f"🛑 Stop Loss getroffen\n"
         msg += f"⏰ `{get_time()} Uhr`\n"
         msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-        msg += "💪 *Loss gehört dazu – next setup kommt\\!*\n"
+        msg += "💪 *Loss gehört dazu – next setup kommt!*\n"
         msg += "@mentor4trading\\_signals"
     return msg
 
@@ -271,7 +271,7 @@ def format_update(signal):
     msg += f"🎯 *TP:*           `{signal['tp']}`\n"
     msg += f"⏰ *Zeit:*        `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "⚠️ *Order angepasst – alter Entry ungültig\\!*\n"
+    msg += "⚠️ *Order angepasst – alter Entry ungültig!*\n"
     msg += f"{arrow} SMC Setup | @mentor4trading\\_signals"
     return msg
 
@@ -289,7 +289,7 @@ def format_tp1(instrument, price):
     msg  = f"💰 *TP1 HIT – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += f"🎯 Erster TP kassiert bei: `{price}`\n"
-    msg += "🔒 SL auf Breakeven gezogen!\n"
+    msg += "🔒 SL wurde auf Breakeven gezogen!\n"
     msg += "Rest läuft weiter 📈\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
@@ -311,7 +311,7 @@ def format_cancel(instrument):
 def format_be(instrument):
     msg  = f"🔒 *BREAKEVEN – {instrument}*\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "SL auf Entry gezogen – kein Risiko mehr\\!\n"
+    msg += "SL auf Entry gezogen – kein Risiko mehr!\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
     msg += "🤖 Jarvis | @mentor4trading\\_signals"
@@ -324,7 +324,7 @@ def format_bestop(instrument):
     msg += "Am Breakeven ausgestoppt! 1. TP haben wir mitgenommen!\n"
     msg += f"⏰ `{get_time()} Uhr`\n"
     msg += "━━━━━━━━━━━━━━━━━━━━━\n"
-    msg += "➡️ Kein Verlust – weiter gehts\\!\n"
+    msg += "➡️ Kein Verlust – weiter gehts!\n"
     msg += "🤖 Jarvis | @mentor4trading\\_signals"
     return msg
 
