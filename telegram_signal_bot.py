@@ -53,60 +53,56 @@ def format_signal(data: dict) -> str | None:
     sl     = data.get('sl')
     tp     = data.get('tp')
 
+    from datetime import datetime
+    zeit = datetime.now().strftime('%H:%M')
+
     if signal == 'LONG':
-        try:
-            rr = round((float(tp) - float(entry)) / (float(entry) - float(sl)), 1)
-        except Exception:
-            rr = '?'
         return (
-            f"🟢 <b>LONG Signal — {symbol}</b>\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"📥 Entry:  <b>{entry}</b>\n"
-            f"🛑 Stop:   <b>{sl}</b>\n"
-            f"🎯 Target: <b>{tp}</b>\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"📐 RR: 1:{rr}\n"
-            f"⚡ BTC HA Strategy | MES"
+            f"🟢 <b>LONG Signal – {symbol}</b>\n"
+            f"――――――――――――\n\n"
+            f"📍 Entry:  {entry}\n"
+            f"🔴 SL:      {sl}\n"
+            f"🎯 TP:      {tp}\n"
+            f"🕐 Zeit:   {zeit} Uhr\n\n"
+            f"――――――――――――\n"
+            f"✅ Jetzt aktiv\!\n"
+            f"📈 BTC HA Strategy | @mentor4trading_signals"
         )
 
     elif signal == 'SHORT':
-        try:
-            rr = round((float(entry) - float(tp)) / (float(sl) - float(entry)), 1)
-        except Exception:
-            rr = '?'
         return (
-            f"🔴 <b>SHORT Signal — {symbol}</b>\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"📥 Entry:  <b>{entry}</b>\n"
-            f"🛑 Stop:   <b>{sl}</b>\n"
-            f"🎯 Target: <b>{tp}</b>\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"📐 RR: 1:{rr}\n"
-            f"⚡ BTC HA Strategy | MES"
+            f"🔴 <b>SHORT Signal – {symbol}</b>\n"
+            f"――――――――――――\n\n"
+            f"📍 Entry:  {entry}\n"
+            f"🔴 SL:      {sl}\n"
+            f"🎯 TP:      {tp}\n"
+            f"🕐 Zeit:   {zeit} Uhr\n\n"
+            f"――――――――――――\n"
+            f"✅ Jetzt aktiv\!\n"
+            f"📈 BTC HA Strategy | @mentor4trading_signals"
         )
 
     elif signal == 'CLOSE_LONG':
         return (
-            f"✅ <b>LONG geschlossen — {symbol}</b>\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"⚡ BTC HA Strategy | MES"
+            f"✅ <b>LONG geschlossen – {symbol}</b>\n"
+            f"――――――――――――\n"
+            f"📈 BTC HA Strategy | @mentor4trading_signals"
         )
 
     elif signal == 'CLOSE_SHORT':
         return (
-            f"✅ <b>SHORT geschlossen — {symbol}</b>\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"⚡ BTC HA Strategy | MES"
+            f"✅ <b>SHORT geschlossen – {symbol}</b>\n"
+            f"――――――――――――\n"
+            f"📈 BTC HA Strategy | @mentor4trading_signals"
         )
 
     elif signal == 'BREAKEVEN':
         return (
-            f"⚖️ <b>BREAKEVEN — {symbol}</b>\n"
-            f"━━━━━━━━━━━━━━━━\n"
+            f"⚖️ <b>BREAKEVEN – {symbol}</b>\n"
+            f"――――――――――――\n"
             f"🔒 SL auf Entry gezogen: <b>{entry}</b>\n"
-            f"✅ Trade ist risikofrei!\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"⚡ BTC HA Strategy | MES"
+            f"✅ Trade ist risikofrei\!\n"
+            f"📈 BTC HA Strategy | @mentor4trading_signals"
         )
 
     return None
