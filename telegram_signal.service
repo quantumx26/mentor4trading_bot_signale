@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram Signal Forwarder (BTC HA Strategy)
+After=network.target
+
+[Service]
+WorkingDirectory=/home/ubuntu/trading
+ExecStart=/usr/bin/python3 telegram_signal_bot.py
+Restart=always
+RestartSec=5
+EnvironmentFile=/home/ubuntu/trading/.env
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
