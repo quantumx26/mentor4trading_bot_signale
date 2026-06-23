@@ -99,6 +99,16 @@ def format_signal(data: dict) -> str | None:
             f"⚡ BTC HA Strategy | MES"
         )
 
+    elif signal == 'BREAKEVEN':
+        return (
+            f"⚖️ <b>BREAKEVEN — {symbol}</b>\n"
+            f"━━━━━━━━━━━━━━━━\n"
+            f"🔒 SL auf Entry gezogen: <b>{entry}</b>\n"
+            f"✅ Trade ist risikofrei!\n"
+            f"━━━━━━━━━━━━━━━━\n"
+            f"⚡ BTC HA Strategy | MES"
+        )
+
     return None
 
 
